@@ -110,16 +110,17 @@ if uploaded_file:
         messages=messages,
     )
 
-    #display the question
-    st.write(f"Your question: {question}")
+    if question: 
+        #display the question
+        st.write(f"Your question: {question}")
 
-    input_variables = {"context": reviews_retriever, "question": RunnablePassthrough()}
-    output_parser = StrOutputParser()
-    review_chain = input_variables | review_prompt_template | llm | output_parser
+        input_variables = {"context": reviews_retriever, "question": RunnablePassthrough()}
+        output_parser = StrOutputParser()
+        review_chain = input_variables | review_prompt_template | llm | output_parser
 
-    # 9. Invoke the RAG chain with the user's question
-    response = review_chain.invoke(question)
+        # 9. Invoke the RAG chain with the user's question
+        response = review_chain.invoke(question)
 
-    # 10. Display the generated response
-    st.write("Answer:")
-    st.write(response)
+        # 10. Display the generated response
+        st.write("Answer:")
+        st.write(response)
