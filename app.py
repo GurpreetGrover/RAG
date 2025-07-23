@@ -1,3 +1,7 @@
+import pysqlite3
+import sys
+sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+
 from langchain_mistralai.embeddings import MistralAIEmbeddings
 from langchain_chroma import Chroma  # A vector database for storing and retrieving embeddings
 from langchain_google_genai import ChatGoogleGenerativeAI

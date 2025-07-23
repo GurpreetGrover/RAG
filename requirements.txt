@@ -1,0 +1,9 @@
+langchain
+langchain-core
+langchain-community
+langchain-google-genai
+langsmith
+langchain-chroma
+langchain-mistralai
+pypdf
+pysqlite3-binary
