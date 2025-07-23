@@ -78,48 +78,48 @@ if uploaded_file:
 
 
 # Placeholder for user question
-question = st.text_input("Ask a question about the document:")
+    question = st.text_input("Ask a question about the document:")
 
-from langchain.prompts import PromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate, ChatPromptTemplate
-from langchain.schema.runnable import RunnablePassthrough
-from langchain_core.output_parsers import StrOutputParser
+    from langchain.prompts import PromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate, ChatPromptTemplate
+    from langchain.schema.runnable import RunnablePassthrough
+    from langchain_core.output_parsers import StrOutputParser
 
 
-# 6. Define the system and human prompt templates and create the ChatPromptTemplate
-review_template_str = """Your job is to use Uploaded documents to answer user queries
-Be as detailed as possible, but don't make up any information that's not from the context.
-If you don't know an answer, say you don't know.
+    # 6. Define the system and human prompt templates and create the ChatPromptTemplate
+    review_template_str = """Your job is to use Uploaded documents to answer user queries
+    Be as detailed as possible, but don't make up any information that's not from the context.
+    If you don't know an answer, say you don't know.
 
-{context}
-"""
-review_system_prompt = SystemMessagePromptTemplate(
-    prompt=PromptTemplate(
-        input_variables=["context"],
-        template=review_template_str,
+    {context}
+    """
+    review_system_prompt = SystemMessagePromptTemplate(
+        prompt=PromptTemplate(
+            input_variables=["context"],
+            template=review_template_str,
+        )
     )
-)
-review_human_prompt = HumanMessagePromptTemplate(
-    prompt=PromptTemplate(
-        input_variables=["question"],
-        template="{question}",
+    review_human_prompt = HumanMessagePromptTemplate(
+        prompt=PromptTemplate(
+            input_variables=["question"],
+            template="{question}",
+        )
     )
-)
-messages = [review_system_prompt, review_human_prompt]
-review_prompt_template = ChatPromptTemplate(
-    input_variables=["context", "question"],
-    messages=messages,
-)
+    messages = [review_system_prompt, review_human_prompt]
+    review_prompt_template = ChatPromptTemplate(
+        input_variables=["context", "question"],
+        messages=messages,
+    )
 
-#display the question
-st.write(f"Your question: {question}")
+    #display the question
+    st.write(f"Your question: {question}")
 
-input_variables = {"context": reviews_retriever, "question": RunnablePassthrough()}
-output_parser = StrOutputParser()
-review_chain = input_variables | review_prompt_template | llm | output_parser
+    input_variables = {"context": reviews_retriever, "question": RunnablePassthrough()}
+    output_parser = StrOutputParser()
+    review_chain = input_variables | review_prompt_template | llm | output_parser
 
-# 9. Invoke the RAG chain with the user's question
-response = review_chain.invoke(question)
+    # 9. Invoke the RAG chain with the user's question
+    response = review_chain.invoke(question)
 
-# 10. Display the generated response
-st.write("Answer:")
-st.write(response)
+    # 10. Display the generated response
+    st.write("Answer:")
+    st.write(response)
