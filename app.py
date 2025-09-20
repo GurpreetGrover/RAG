@@ -1,6 +1,6 @@
-import pysqlite3
+# import pysqlite3
 import sys
-sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+# sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
 from langchain_mistralai.embeddings import MistralAIEmbeddings
 from langchain_chroma import Chroma  # A vector database for storing and retrieving embeddings
@@ -11,6 +11,10 @@ import time
 from tqdm import tqdm  # For progress tracking
 import streamlit as st
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 st.title("PDF Question Answering with RAG")
 
@@ -21,13 +25,22 @@ class RateLimitedEmbeddings(MistralAIEmbeddings):
         for text in tqdm(texts, desc="Generating embeddings"):
             embedding = super().embed_documents([text], **kwargs)[0]
             embeddings.append(embedding)
-            time.sleep(2)  # Wait for 1.5 second between requests
+            time.sleep(2)  # Wait for 2 second between requests
         return embeddings
 
+try:
+    MISTRAL_API_KEY = st.secrets["MISTRAL_API_KEY"]
+except (KeyError, FileNotFoundError):
+    MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY")
 
-embedder = MistralAIEmbeddings(api_key=st.secrets['Mistral_API_key'])
+embedder = MistralAIEmbeddings(api_key= MISTRAL_API_KEY)
 
-os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
+
+try:
+    os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
+except (KeyError, FileNotFoundError):
+    os.environ["GOOGLE_API_KEY"] = os.getenv("GOOGLE_API_KEY")
+
 
 llm = ChatGoogleGenerativeAI(
     model="gemini-2.5-flash",

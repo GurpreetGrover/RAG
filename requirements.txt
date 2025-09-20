@@ -6,4 +6,5 @@ langsmith
 langchain-chroma
 langchain-mistralai
 pypdf
-pysqlite3-binary
+# pysqlite3-binary
+streamlit
