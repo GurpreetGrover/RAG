@@ -36,48 +36,51 @@ llm = ChatGoogleGenerativeAI(
 
 import tempfile
 
+def get_session_retriever(uploaded_file, embedder):
+    """
+    Gets or creates a retriever for the current session.
+    """
+    # Create a unique identifier for the uploaded file.
+    current_file_id = f"{uploaded_file.name}-{uploaded_file.size}"
+
+    # Check if a retriever is already in the session state for the same file.
+    if "retriever" in st.session_state and st.session_state.file_id == current_file_id:
+        return st.session_state.retriever
+
+    # If not, create a new one.
+    st.info("Creating a new retriever for this session...")
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
+        tmp_file.write(uploaded_file.getvalue())
+        tmp_file_path = tmp_file.name
+    try:
+        loader = PyPDFLoader(file_path=tmp_file_path)
+        documents = loader.load()
+        reviews_vector_db = Chroma.from_documents(
+            documents=documents,
+            embedding=embedder,
+        )
+        retriever = reviews_vector_db.as_retriever(k=10)
+        
+        # Store the new retriever and file identifier in the session state.
+        st.session_state.retriever = retriever
+        st.session_state.file_id = current_file_id
+        return retriever
+    except:
+        st.write("Something unexpected happened in loading the document or creating the embeddings")
+    finally:
+        os.remove(tmp_file_path)
+
 # Placeholder for file upload
 uploaded_file = st.file_uploader("Upload a PDF file", type="pdf")
 
-
 if uploaded_file:
-    with st.spinner("Processing the document"):
-        
-        # 1. Save the uploaded file to a temporary file
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
-            tmp_file.write(uploaded_file.getvalue())
-            tmp_file_path = tmp_file.name
-            st.write(f"Uploaded file: {uploaded_file.name}")
+    # This single line now handles all the processing and caching.
+    # It will be instant after the first run for a given file.
 
+    # reviews_retriever = create_retriever(uploaded_file, embedder)
+    reviews_retriever = get_session_retriever(uploaded_file, embedder)
 
-        try:
-            with st.spinner("processing embeddings"):
-                # 2. Instantiate PyPDFLoader and load documents
-                loader = PyPDFLoader(file_path=tmp_file_path)
-                documents = loader.load()
-                
-                # 4. Create a Chroma vector database from the loaded documents and the embedder
-                reviews_vector_db = Chroma.from_documents(
-                    documents=documents,
-                    embedding=embedder,
-                )
-
-                # 5. Create a retriever from the Chroma database
-                reviews_retriever = reviews_vector_db.as_retriever(k=10)
-
-        except:
-            print("Something unexpected happened in loading the document")
-
-    # Here you will add the code to process the PDF and answer the question
-    # For now, just display the uploaded file name
-    st.write(f"embeddings stored")
-    
-    # Add your RAG logic here
-    # For demonstration, let's just display a placeholder response
-    # st.write("Placeholder Answer: This is where the answer from the RAG model will appear.")
-
-
-# Placeholder for user question
+    # Placeholder for user question
     question = st.text_input("Ask a question about the document:")
 
     from langchain.prompts import PromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate, ChatPromptTemplate
@@ -85,7 +88,7 @@ if uploaded_file:
     from langchain_core.output_parsers import StrOutputParser
 
 
-    # 6. Define the system and human prompt templates and create the ChatPromptTemplate
+    # Define the system and human prompt templates and create the ChatPromptTemplate
     review_template_str = """Your job is to use Uploaded documents to answer user queries
     Be as detailed as possible, but don't make up any information that's not from the context.
     If you don't know an answer, say you don't know.
@@ -111,16 +114,16 @@ if uploaded_file:
     )
 
     if question: 
-        #display the question
+        # display the question
         st.write(f"Your question: {question}")
 
         input_variables = {"context": reviews_retriever, "question": RunnablePassthrough()}
         output_parser = StrOutputParser()
         review_chain = input_variables | review_prompt_template | llm | output_parser
 
-        # 9. Invoke the RAG chain with the user's question
+        # Invoke the RAG chain with the user's question
         response = review_chain.invoke(question)
 
-        # 10. Display the generated response
+        # Display the generated response
         st.write("Answer:")
         st.write(response)
