@@ -19,6 +19,18 @@ This project is an implementation of a Retrieval-Augmented Generation (RAG) appl
 - **Streamlit**: For building the interactive web application.
 - **Chroma Vector Database**: For document retrieval 
 - **Mistral Embeddings and Gemini Language Model APIs**: Integrates with models from Gemini and Mistral AI
+- **AgentOps**: For monitoring and observability of the RAG agent.
+
+## What is AgentOps?
+
+AgentOps is a tool for monitoring, evaluating, and debugging AI agents. In this project, AgentOps is used to:
+
+- **Track LLM Calls**: Monitor the calls made to the Gemini language model, including the prompts, responses, and token usage.
+- **Trace Agent Execution**: Visualize the entire execution flow of the RAG agent, from receiving a query to generating a response.
+- **Analyze Performance**: Track latency, cost, and other performance metrics to identify bottlenecks and optimize the agent.
+- **Debug Issues**: Quickly identify and debug issues by inspecting the detailed logs and traces provided by AgentOps.
+
+By integrating AgentOps, we gain valuable insights into the behavior and performance of our RAG application, making it easier to maintain, improve, and scale.
 
 ## Setup Instructions
 

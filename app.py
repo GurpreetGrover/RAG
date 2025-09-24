@@ -6,6 +6,8 @@ from langchain_mistralai.embeddings import MistralAIEmbeddings
 from langchain_chroma import Chroma  # A vector database for storing and retrieving embeddings
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_community.document_loaders import PyPDFLoader
+import agentops
+import os
 
 import time
 from tqdm import tqdm  # For progress tracking
@@ -28,6 +30,7 @@ class RateLimitedEmbeddings(MistralAIEmbeddings):
 embedder = MistralAIEmbeddings(api_key=st.secrets['Mistral_API_key'])
 
 os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
+agentops.init(st.secrets["AGENTOPS_API_KEY"])
 
 llm = ChatGoogleGenerativeAI(
     model="gemini-2.5-flash",
@@ -119,7 +122,7 @@ if uploaded_file:
         review_chain = input_variables | review_prompt_template | llm | output_parser
 
         # 9. Invoke the RAG chain with the user's question
-        response = review_chain.invoke(question)
+        response = review_chain.invoke(question, config={'callbacks': [agentops.LangchainCallbackHandler()]})
 
         # 10. Display the generated response
         st.write("Answer:")

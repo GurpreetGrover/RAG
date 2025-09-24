@@ -7,3 +7,4 @@ langchain-chroma
 langchain-mistralai
 pypdf
 pysqlite3-binary
+agentops
