@@ -88,17 +88,47 @@ def get_session_retriever(uploaded_file, embedder):
 uploaded_file = st.file_uploader("Upload a PDF file", type="pdf")
 
 if uploaded_file:
-    # This single line now handles all the processing and caching.
-    # It will be instant after the first run for a given file.
+    with st.spinner("Processing the document"):
 
-    # reviews_retriever = create_retriever(uploaded_file, embedder)
-    reviews_retriever = get_session_retriever(uploaded_file, embedder)
+        # 1. Save the uploaded file to a temporary file
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
+            tmp_file.write(uploaded_file.getvalue())
+            tmp_file_path = tmp_file.name
+            st.write(f"Uploaded file: {uploaded_file.name}")
 
-    # Placeholder for user question
+
+        try:
+            with st.spinner("processing embeddings"):
+                # 2. Instantiate PyPDFLoader and load documents
+                loader = PyPDFLoader(file_path=tmp_file_path)
+                documents = loader.load()
+
+                # 4. Create a Chroma vector database from the loaded documents and the embedder
+                reviews_vector_db = Chroma.from_documents(
+                    documents=documents,
+                    embedding=embedder,
+                )
+
+                # 5. Create a retriever from the Chroma database
+                reviews_retriever = reviews_vector_db.as_retriever(k=10)
+
+        except:
+            print("Something unexpected happened in loading the document")
+
+    # Here you will add the code to process the PDF and answer the question
+    # For now, just display the uploaded file name
+    st.write(f"embeddings stored")
+
+    # Add your RAG logic here
+    # For demonstration, let's just display a placeholder response
+    # st.write("Placeholder Answer: This is where the answer from the RAG model will appear.")
+
+
+# Placeholder for user question
     question = st.text_input("Ask a question about the document:")
 
     from langchain_core.prompts import PromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate, ChatPromptTemplate
-    from langchain.schema.runnable import RunnablePassthrough
+    from langchain_core.runnables import RunnablePassthrough
     from langchain_core.output_parsers import StrOutputParser
 
 
