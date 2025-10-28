@@ -6,6 +6,8 @@ from langchain_mistralai.embeddings import MistralAIEmbeddings
 from langchain_chroma import Chroma  # A vector database for storing and retrieving embeddings
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_community.document_loaders import PyPDFLoader
+import agentops
+import os
 
 import time
 from tqdm import tqdm  # For progress tracking
@@ -36,11 +38,10 @@ except (KeyError, FileNotFoundError):
 embedder = MistralAIEmbeddings(api_key= MISTRAL_API_KEY)
 
 
-try:
-    os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
-except (KeyError, FileNotFoundError):
-    os.environ["GOOGLE_API_KEY"] = os.getenv("GOOGLE_API_KEY")
+embedder = MistralAIEmbeddings(api_key=st.secrets['MISTRAL_API_KEY'])
 
+os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
+agentops.init(st.secrets["AGENTOPS_API_KEY"])
 
 llm = ChatGoogleGenerativeAI(
     model="gemini-2.5-flash",
@@ -96,7 +97,7 @@ if uploaded_file:
     # Placeholder for user question
     question = st.text_input("Ask a question about the document:")
 
-    from langchain.prompts import PromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate, ChatPromptTemplate
+    from langchain_core.prompts import PromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate, ChatPromptTemplate
     from langchain.schema.runnable import RunnablePassthrough
     from langchain_core.output_parsers import StrOutputParser
 
@@ -134,8 +135,8 @@ if uploaded_file:
         output_parser = StrOutputParser()
         review_chain = input_variables | review_prompt_template | llm | output_parser
 
-        # Invoke the RAG chain with the user's question
-        response = review_chain.invoke(question)
+        # 9. Invoke the RAG chain with the user's question
+        response = review_chain.invoke(question, config={'callbacks': [agentops.LangchainCallbackHandler()]})
 
         # Display the generated response
         st.write("Answer:")
