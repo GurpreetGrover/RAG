@@ -27,7 +27,7 @@ class RateLimitedEmbeddings(MistralAIEmbeddings):
         return embeddings
 
 
-embedder = MistralAIEmbeddings(api_key=st.secrets['Mistral_API_key'])
+embedder = MistralAIEmbeddings(api_key=st.secrets['MISTRAL_API_KEY'])
 
 os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
 agentops.init(st.secrets["AGENTOPS_API_KEY"])
@@ -83,7 +83,7 @@ if uploaded_file:
 # Placeholder for user question
     question = st.text_input("Ask a question about the document:")
 
-    from langchain.prompts import PromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate, ChatPromptTemplate
+    from langchain_core.prompts import PromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate, ChatPromptTemplate
     from langchain.schema.runnable import RunnablePassthrough
     from langchain_core.output_parsers import StrOutputParser
 
